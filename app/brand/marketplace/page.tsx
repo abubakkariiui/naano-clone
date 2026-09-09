@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CreatorCard } from "@/components/CreatorCard";
 import { Button, Card, Empty, cx, eur, fmtCompact } from "@/components/ui";
@@ -24,7 +24,7 @@ const TIERS = [
   { label: "Mid · 25–50K", min: 25000, max: 50000 },
 ];
 
-export default function Marketplace() {
+function MarketplaceInner() {
   const store = useBrandData();
   const router = useRouter();
 
@@ -344,5 +344,17 @@ function CreatorAvatarMini({ name }: { name: string }) {
     <span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-[10px] font-semibold text-white">
       {initials}
     </span>
+  );
+}
+
+/**
+ * useSearchParams() needs a Suspense boundary or the route cannot be
+ * statically prerendered -- Next 15 fails the build rather than warning.
+ */
+export default function Marketplace() {
+  return (
+    <Suspense fallback={<div className="h-[60vh] animate-pulse rounded-card bg-surface ring-1 ring-line" />}>
+      <MarketplaceInner />
+    </Suspense>
   );
 }

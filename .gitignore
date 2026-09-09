@@ -45,3 +45,6 @@ next-env.d.ts
 .claude/.capture-state/
 
 .vercel
+
+# build output from local deploy attempts
+.vercel/

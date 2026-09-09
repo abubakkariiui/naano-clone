@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { FitPill } from "@/components/CreatorCard";
 import {
   Avatar,
@@ -24,7 +24,7 @@ import { useBrandData } from "@/lib/store";
 import { STATUS_TONE } from "@/lib/status";
 import { STATUS_LABEL, type Booking } from "@/lib/types";
 
-export default function CampaignDetail() {
+function CampaignDetailInner() {
   const { id } = useParams<{ id: string }>();
   const params = useSearchParams();
   const store = useBrandData();
@@ -372,5 +372,17 @@ function BriefBlock({
         ))}
       </ul>
     </div>
+  );
+}
+
+/**
+ * useSearchParams() needs a Suspense boundary or the route cannot be
+ * statically prerendered -- Next 15 fails the build rather than warning.
+ */
+export default function CampaignDetail() {
+  return (
+    <Suspense fallback={<div className="h-[60vh] animate-pulse rounded-card bg-surface ring-1 ring-line" />}>
+      <CampaignDetailInner />
+    </Suspense>
   );
 }

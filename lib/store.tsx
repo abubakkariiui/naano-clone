@@ -70,7 +70,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (raw) {
         const saved = JSON.parse(raw) as Partial<AppState>;
         // Creators are code, not user data -- always take the current seed.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setState({ ...initial, ...saved, creators: CREATORS });
       }
     } catch {
