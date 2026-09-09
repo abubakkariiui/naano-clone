@@ -139,6 +139,24 @@ function bodyOf(file, meta) {
   return m ? raw.slice(m[0].length) : raw;
 }
 
+/**
+ * The first prompt of a session is submitted before any assistant message
+ * exists, so its model is unknowable at write time and lands as `unknown`.
+ * Once that turn ends we know it, so we fill in that single metadata field.
+ * This is the ONLY thing ever rewritten inside an already-written entry --
+ * prompt and response text is never touched.
+ */
+function backfillModel(body, num, model) {
+  if (!model || model === 'unknown') return body;
+  const marker = '[LOG_ENTRY type=PROMPT num=' + num + ' session=';
+  const start = body.lastIndexOf(marker);
+  if (start === -1) return body;
+  const stale = 'model: unknown';
+  const at = body.indexOf(stale, start);
+  if (at === -1 || at - start > 200) return body; // only the header of that entry
+  return body.slice(0, at) + 'model: ' + model + body.slice(at + stale.length);
+}
+
 function entryBlock(type, num, sessionId, iso, model, text) {
   return [
     '[LOG_ENTRY type=' + type + ' num=' + num + ' session=' + sessionId.slice(0, 8) + ']',
@@ -180,7 +198,8 @@ async function main() {
 
   const commit = (type, num, text) => {
     const m = meta();
-    const body = bodyOf(file, m);
+    let body = bodyOf(file, m);
+    if (type === 'RESPONSE') body = backfillModel(body, num, model);
     fs.writeFileSync(file, frontmatter(m) + body + entryBlock(type, num, sessionId, iso, model, text), 'utf8');
     fs.writeFileSync(statePath, JSON.stringify(state, null, 2));
   };
