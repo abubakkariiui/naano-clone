@@ -96,10 +96,40 @@ export default function CampaignDetail() {
           </div>
           <h1 className="mt-1.5 text-[26px] font-semibold tracking-[-0.02em]">{campaign.name}</h1>
         </div>
-        <ButtonLink href={`/brand/marketplace?campaign=${campaign.id}`} variant="secondary">
-          Add creators
-        </ButtonLink>
+        <div className="flex items-center gap-2">
+          <ButtonLink
+            href={`/brand/marketplace?campaign=${campaign.id}`}
+            variant={campaign.status === "draft" ? "secondary" : "primary"}
+          >
+            Add creators
+          </ButtonLink>
+          {campaign.status === "draft" ? (
+            <Button onClick={() => store.updateCampaign(campaign.id, { status: "live" })}>
+              Launch campaign
+            </Button>
+          ) : (
+            bookings.length > 0 &&
+            bookings.every((b) => ["completed", "declined"].includes(b.status)) && (
+              <Button
+                variant="secondary"
+                onClick={() => store.updateCampaign(campaign.id, { status: "completed" })}
+              >
+                Mark completed
+              </Button>
+            )
+          )}
+        </div>
       </div>
+
+      {campaign.status === "draft" && (
+        <Card className="border-l-4 border-l-brand p-4">
+          <p className="text-[13.5px] font-medium">This campaign is still a draft.</p>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-muted">
+            Creators cannot be invited until it is live. Launching does not spend anything
+            — you are only charged per post, once a post goes live.
+          </p>
+        </Card>
+      )}
 
       <Card className="grid grid-cols-2 divide-line-soft sm:grid-cols-4 sm:divide-x">
         <Stat label="Attributed pipeline" value={eur(totals.pipeline)} accent />

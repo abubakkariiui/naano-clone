@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CreatorCard } from "@/components/CreatorCard";
 import { Button, Card, Empty, cx, eur, fmtCompact } from "@/components/ui";
 import { fitScore } from "@/lib/fit";
@@ -29,7 +29,16 @@ export default function Marketplace() {
   const router = useRouter();
 
   const liveCampaigns = store.campaigns;
-  const [campaignId, setCampaignId] = useState(liveCampaigns[0]?.id ?? "");
+
+  // "Add creators" and "Create and find creators" both arrive with ?campaign=,
+  // and the whole page is scored against that campaign -- honour it.
+  const params = useSearchParams();
+  const requested = params.get("campaign");
+  const [campaignId, setCampaignId] = useState(
+    requested && liveCampaigns.some((c) => c.id === requested)
+      ? requested
+      : (liveCampaigns[0]?.id ?? ""),
+  );
   const campaign = liveCampaigns.find((c) => c.id === campaignId);
 
   const [q, setQ] = useState("");
@@ -92,7 +101,11 @@ export default function Marketplace() {
   const toggleVertical = (v: Vertical) =>
     setVerticals((s) => (s.includes(v) ? s.filter((x) => x !== v) : [...s, v]));
 
+  // A draft campaign has no agreed brief yet, so it cannot take invites.
+  const isDraft = campaign?.status === "draft";
+
   const sendInvites = () => {
+    if (!campaignId || isDraft) return;
     store.invite(campaignId, store.shortlist);
     router.push(`/brand/campaigns/${campaignId}`);
   };
@@ -122,6 +135,7 @@ export default function Marketplace() {
               {liveCampaigns.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
+                  {c.status === "draft" ? " (draft)" : ""}
                 </option>
               ))}
             </select>
@@ -304,11 +318,16 @@ export default function Marketplace() {
                 reach
               </p>
             </div>
+            {isDraft && (
+              <p className="text-[11.5px] text-amber-700">
+                Launch this campaign before inviting creators.
+              </p>
+            )}
             <div className="ml-auto flex items-center gap-2">
               <Button variant="ghost" size="sm" onClick={() => store.shortlist.forEach((id) => store.toggleShortlist(id))}>
                 Clear
               </Button>
-              <Button size="sm" onClick={sendInvites} disabled={!campaignId}>
+              <Button size="sm" onClick={sendInvites} disabled={!campaignId || isDraft}>
                 Invite to campaign
               </Button>
             </div>
