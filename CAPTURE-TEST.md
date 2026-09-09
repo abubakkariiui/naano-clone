@@ -170,10 +170,13 @@ _Pending — see Outstanding._
 
 ## Outstanding
 
-Claude Code snapshots hook config at session start, so the session that *wrote*
-these hooks cannot fire them, and the CLI route to a fresh session is blocked on
-expired OAuth. Two live canaries are still needed, each producing a PROMPT **and** a
-RESPONSE entry:
+Correction to an assumption I recorded earlier: I expected Claude Code to snapshot
+hook config at session start, so that the session which *wrote* the hooks could not
+fire them. That is wrong for the desktop app — it picked the new hooks up mid-session
+and logged its own canary (canary 2 below). The CLI route to a fresh session remains
+blocked on expired OAuth.
+
+Still needed:
 
 1. Send `CAPTURE TEST — 8x assignment, Abubakkar` in a **newly started** session in
    this folder.
