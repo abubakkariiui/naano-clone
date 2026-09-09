@@ -23,10 +23,17 @@ type Spec = {
   vertical: Vertical;
   followers: number;
   price: number;
-  /** reach as a share of followers, CTR %, qualified-lead rate % of clicks */
+  /** reach as a share of followers, CTR %, and target cost per qualified lead */
   reach: number;
   ctr: number;
-  leadRate: number;
+  /**
+   * Euros per qualified lead this creator delivers. Leads are derived from it
+   * rather than from a click-conversion rate, because CPL is the number both
+   * sides of the marketplace actually negotiate against -- and it keeps the
+   * seed anchored to Naano's published ~EUR 18 average instead of drifting.
+   * Nano creators sit below the average, large generalists above it.
+   */
+  cpl: number;
   rating: number;
   reviews: number;
   days: number;
@@ -45,7 +52,7 @@ const SPECS: Spec[] = [
     name: "Thomas Higadère",
     headline: "Prospecting workflows for wealth managers · B2B & AI",
     vertical: "Sales-tech",
-    followers: 34000, price: 890, reach: 0.82, ctr: 12.6, leadRate: 4.2,
+    followers: 34000, price: 890, reach: 0.82, ctr: 12.6, cpl: 19,
     rating: 4.9, reviews: 41, days: 4, langs: ["English", "French"], focus: 0.62,
     seniority: { "Founder / C-level": 0.22, "VP / Head": 0.41, Manager: 0.28, IC: 0.09 },
     functions: { Sales: 0.58, Marketing: 0.18, Finance: 0.14, Product: 0.1 },
@@ -57,7 +64,7 @@ const SPECS: Spec[] = [
     name: "Robin Tempe",
     headline: "Running an entire prospecting motion through AI · Sales & AI",
     vertical: "Sales-tech",
-    followers: 12000, price: 340, reach: 0.94, ctr: 14.1, leadRate: 5.6,
+    followers: 12000, price: 340, reach: 0.94, ctr: 14.1, cpl: 15,
     rating: 4.8, reviews: 27, days: 3, langs: ["English"], focus: 0.71,
     seniority: { "Founder / C-level": 0.31, "VP / Head": 0.34, Manager: 0.25, IC: 0.1 },
     functions: { Sales: 0.66, Marketing: 0.16, Product: 0.11, Engineering: 0.07 },
@@ -69,7 +76,7 @@ const SPECS: Spec[] = [
     name: "Eric Djavid",
     headline: "Sales Leader · Fixing how teams pick leads",
     vertical: "Sales-tech",
-    followers: 40000, price: 1150, reach: 0.76, ctr: 11.2, leadRate: 3.8,
+    followers: 40000, price: 1150, reach: 0.76, ctr: 11.2, cpl: 26,
     rating: 4.9, reviews: 58, days: 5, langs: ["English", "French"], focus: 0.54,
     seniority: { "Founder / C-level": 0.28, "VP / Head": 0.44, Manager: 0.21, IC: 0.07 },
     functions: { Sales: 0.61, Marketing: 0.2, Finance: 0.1, Product: 0.09 },
@@ -81,7 +88,7 @@ const SPECS: Spec[] = [
     name: "Marina Panova",
     headline: "The 30-day LinkedIn content system · B2B content",
     vertical: "Marketing-ops",
-    followers: 34000, price: 780, reach: 0.98, ctr: 13.4, leadRate: 4.6,
+    followers: 34000, price: 780, reach: 0.98, ctr: 13.4, cpl: 18,
     rating: 4.9, reviews: 63, days: 3, langs: ["English", "German"], focus: 0.58,
     seniority: { "Founder / C-level": 0.26, "VP / Head": 0.3, Manager: 0.32, IC: 0.12 },
     functions: { Marketing: 0.64, Sales: 0.17, Product: 0.11, People: 0.08 },
@@ -93,7 +100,7 @@ const SPECS: Spec[] = [
     name: "Priya Raghunathan",
     headline: "RevOps · Making the funnel legible",
     vertical: "RevOps",
-    followers: 8600, price: 260, reach: 1.02, ctr: 15.2, leadRate: 6.1,
+    followers: 8600, price: 260, reach: 1.02, ctr: 15.2, cpl: 13,
     rating: 5.0, reviews: 19, days: 3, langs: ["English"], focus: 0.79,
     seniority: { "VP / Head": 0.38, Manager: 0.42, "Founder / C-level": 0.13, IC: 0.07 },
     functions: { Sales: 0.34, Marketing: 0.31, Finance: 0.22, Product: 0.13 },
@@ -105,7 +112,7 @@ const SPECS: Spec[] = [
     name: "Jonas Lindqvist",
     headline: "Devtools · Shipping in public",
     vertical: "Devtools",
-    followers: 21000, price: 540, reach: 0.88, ctr: 12.9, leadRate: 4.4,
+    followers: 21000, price: 540, reach: 0.88, ctr: 12.9, cpl: 19,
     rating: 4.7, reviews: 34, days: 4, langs: ["English", "Swedish"], focus: 0.74,
     seniority: { IC: 0.44, Manager: 0.27, "VP / Head": 0.19, "Founder / C-level": 0.1 },
     functions: { Engineering: 0.72, Product: 0.18, Marketing: 0.06, Sales: 0.04 },
@@ -117,7 +124,7 @@ const SPECS: Spec[] = [
     name: "Aya Nakamura",
     headline: "Product management · Discovery that is not theatre",
     vertical: "Product",
-    followers: 17500, price: 460, reach: 0.91, ctr: 12.2, leadRate: 4.8,
+    followers: 17500, price: 460, reach: 0.91, ctr: 12.2, cpl: 17,
     rating: 4.8, reviews: 29, days: 4, langs: ["English", "Japanese"], focus: 0.69,
     seniority: { Manager: 0.39, "VP / Head": 0.31, IC: 0.2, "Founder / C-level": 0.1 },
     functions: { Product: 0.68, Engineering: 0.15, Marketing: 0.11, Sales: 0.06 },
@@ -129,7 +136,7 @@ const SPECS: Spec[] = [
     name: "Nada Belkacem",
     headline: "HR-tech · Hiring systems for small teams",
     vertical: "HR-tech",
-    followers: 14200, price: 380, reach: 0.95, ctr: 13.8, leadRate: 5.2,
+    followers: 14200, price: 380, reach: 0.95, ctr: 13.8, cpl: 15,
     rating: 4.9, reviews: 37, days: 3, langs: ["English", "French", "Arabic"], focus: 0.76,
     seniority: { "VP / Head": 0.36, Manager: 0.34, "Founder / C-level": 0.22, IC: 0.08 },
     functions: { People: 0.7, Marketing: 0.11, Sales: 0.1, Finance: 0.09 },
@@ -141,7 +148,7 @@ const SPECS: Spec[] = [
     name: "Raphael Sorin",
     headline: "Fintech · Embedded finance, plainly explained",
     vertical: "Fintech",
-    followers: 26000, price: 690, reach: 0.84, ctr: 11.6, leadRate: 4.1,
+    followers: 26000, price: 690, reach: 0.84, ctr: 11.6, cpl: 22,
     rating: 4.7, reviews: 44, days: 5, langs: ["English", "French"], focus: 0.66,
     seniority: { "Founder / C-level": 0.34, "VP / Head": 0.36, Manager: 0.22, IC: 0.08 },
     functions: { Finance: 0.56, Product: 0.19, Sales: 0.14, Engineering: 0.11 },
@@ -153,7 +160,7 @@ const SPECS: Spec[] = [
     name: "Sofia Marchetti",
     headline: "Vertical SaaS · Construction-tech operator",
     vertical: "Vertical SaaS",
-    followers: 6200, price: 180, reach: 1.08, ctr: 16.4, leadRate: 6.8,
+    followers: 6200, price: 180, reach: 1.08, ctr: 16.4, cpl: 12,
     rating: 5.0, reviews: 14, days: 2, langs: ["English", "Italian"], focus: 0.84,
     seniority: { "Founder / C-level": 0.41, "VP / Head": 0.3, Manager: 0.22, IC: 0.07 },
     functions: { Product: 0.3, Sales: 0.28, Finance: 0.24, Engineering: 0.18 },
@@ -165,7 +172,7 @@ const SPECS: Spec[] = [
     name: "Daniel Okonkwo",
     headline: "Devtools · Platform engineering at scale",
     vertical: "Devtools",
-    followers: 48000, price: 1350, reach: 0.72, ctr: 10.4, leadRate: 3.2,
+    followers: 48000, price: 1350, reach: 0.72, ctr: 10.4, cpl: 31,
     rating: 4.8, reviews: 71, days: 6, langs: ["English"], focus: 0.51,
     seniority: { IC: 0.41, Manager: 0.28, "VP / Head": 0.22, "Founder / C-level": 0.09 },
     functions: { Engineering: 0.66, Product: 0.16, Marketing: 0.1, Sales: 0.08 },
@@ -177,7 +184,7 @@ const SPECS: Spec[] = [
     name: "Clara Vogt",
     headline: "Marketing-ops · Attribution without the fantasy",
     vertical: "Marketing-ops",
-    followers: 11400, price: 320, reach: 0.97, ctr: 14.6, leadRate: 5.8,
+    followers: 11400, price: 320, reach: 0.97, ctr: 14.6, cpl: 14,
     rating: 4.9, reviews: 23, days: 3, langs: ["English", "German"], focus: 0.81,
     seniority: { Manager: 0.4, "VP / Head": 0.35, IC: 0.16, "Founder / C-level": 0.09 },
     functions: { Marketing: 0.74, Sales: 0.13, Finance: 0.08, Product: 0.05 },
@@ -189,7 +196,7 @@ const SPECS: Spec[] = [
     name: "Mateo Ferrer",
     headline: "RevOps · CRM hygiene as a growth lever",
     vertical: "RevOps",
-    followers: 15800, price: 410, reach: 0.9, ctr: 13.1, leadRate: 5.0,
+    followers: 15800, price: 410, reach: 0.9, ctr: 13.1, cpl: 16,
     rating: 4.7, reviews: 31, days: 4, langs: ["English", "Spanish"], focus: 0.72,
     seniority: { Manager: 0.41, "VP / Head": 0.33, IC: 0.17, "Founder / C-level": 0.09 },
     functions: { Sales: 0.42, Marketing: 0.28, Finance: 0.18, Product: 0.12 },
@@ -201,7 +208,7 @@ const SPECS: Spec[] = [
     name: "Yuki Tanaka",
     headline: "Product-led growth · Onboarding teardowns",
     vertical: "Product",
-    followers: 9800, price: 280, reach: 1.0, ctr: 15.0, leadRate: 6.2,
+    followers: 9800, price: 280, reach: 1.0, ctr: 15.0, cpl: 13,
     rating: 5.0, reviews: 21, days: 3, langs: ["English", "Japanese"], focus: 0.77,
     seniority: { Manager: 0.36, "VP / Head": 0.3, "Founder / C-level": 0.24, IC: 0.1 },
     functions: { Product: 0.62, Marketing: 0.22, Engineering: 0.1, Sales: 0.06 },
@@ -213,7 +220,7 @@ const SPECS: Spec[] = [
     name: "Lena Fischer",
     headline: "HR-tech · Compensation and levelling",
     vertical: "HR-tech",
-    followers: 22500, price: 580, reach: 0.86, ctr: 12.0, leadRate: 4.3,
+    followers: 22500, price: 580, reach: 0.86, ctr: 12.0, cpl: 20,
     rating: 4.8, reviews: 39, days: 4, langs: ["English", "German"], focus: 0.7,
     seniority: { "VP / Head": 0.4, "Founder / C-level": 0.26, Manager: 0.26, IC: 0.08 },
     functions: { People: 0.66, Finance: 0.16, Sales: 0.1, Product: 0.08 },
@@ -225,7 +232,7 @@ const SPECS: Spec[] = [
     name: "Tobias Nilsen",
     headline: "Fintech · Treasury for startups",
     vertical: "Fintech",
-    followers: 7400, price: 210, reach: 1.05, ctr: 15.8, leadRate: 6.4,
+    followers: 7400, price: 210, reach: 1.05, ctr: 15.8, cpl: 12,
     rating: 4.9, reviews: 17, days: 2, langs: ["English", "Norwegian"], focus: 0.82,
     seniority: { "Founder / C-level": 0.44, "VP / Head": 0.28, Manager: 0.2, IC: 0.08 },
     functions: { Finance: 0.68, Product: 0.14, Sales: 0.1, Engineering: 0.08 },
@@ -237,7 +244,7 @@ const SPECS: Spec[] = [
     name: "Amara Diallo",
     headline: "Sales-tech · Enterprise deal mechanics",
     vertical: "Sales-tech",
-    followers: 19200, price: 495, reach: 0.89, ctr: 12.4, leadRate: 4.7,
+    followers: 19200, price: 495, reach: 0.89, ctr: 12.4, cpl: 18,
     rating: 4.8, reviews: 33, days: 4, langs: ["English", "French"], focus: 0.68,
     seniority: { "VP / Head": 0.42, "Founder / C-level": 0.24, Manager: 0.26, IC: 0.08 },
     functions: { Sales: 0.63, Marketing: 0.16, Finance: 0.12, Product: 0.09 },
@@ -249,7 +256,7 @@ const SPECS: Spec[] = [
     name: "Krishna Iyer",
     headline: "Devtools · Observability and on-call",
     vertical: "Devtools",
-    followers: 13600, price: 365, reach: 0.93, ctr: 13.6, leadRate: 5.1,
+    followers: 13600, price: 365, reach: 0.93, ctr: 13.6, cpl: 15,
     rating: 4.7, reviews: 26, days: 3, langs: ["English"], focus: 0.75,
     seniority: { IC: 0.46, Manager: 0.29, "VP / Head": 0.18, "Founder / C-level": 0.07 },
     functions: { Engineering: 0.76, Product: 0.13, Marketing: 0.06, Sales: 0.05 },
@@ -261,7 +268,7 @@ const SPECS: Spec[] = [
     name: "Elise Moreau",
     headline: "Vertical SaaS · Legal-tech buyer",
     vertical: "Vertical SaaS",
-    followers: 5100, price: 145, reach: 1.12, ctr: 17.1, leadRate: 7.2,
+    followers: 5100, price: 145, reach: 1.12, ctr: 17.1, cpl: 11,
     rating: 5.0, reviews: 11, days: 2, langs: ["English", "French"], focus: 0.87,
     seniority: { "Founder / C-level": 0.38, "VP / Head": 0.34, Manager: 0.21, IC: 0.07 },
     functions: { Finance: 0.3, Product: 0.26, Sales: 0.24, People: 0.2 },
@@ -273,7 +280,7 @@ const SPECS: Spec[] = [
     name: "Oskar Nowak",
     headline: "Marketing-ops · Lifecycle and email infrastructure",
     vertical: "Marketing-ops",
-    followers: 28500, price: 720, reach: 0.8, ctr: 11.4, leadRate: 3.9,
+    followers: 28500, price: 720, reach: 0.8, ctr: 11.4, cpl: 24,
     rating: 4.6, reviews: 47, days: 5, langs: ["English", "Polish"], focus: 0.6,
     seniority: { Manager: 0.38, "VP / Head": 0.32, IC: 0.2, "Founder / C-level": 0.1 },
     functions: { Marketing: 0.68, Sales: 0.15, Product: 0.1, Engineering: 0.07 },
@@ -314,7 +321,7 @@ function buildAudience(spec: Spec): Audience {
 export const CREATORS: Creator[] = SPECS.map((s, i) => {
   const impressions = Math.round(s.followers * s.reach);
   const clicks = Math.round(impressions * (s.ctr / 100));
-  const leads = Math.round(clicks * (s.leadRate / 100));
+  const leads = Math.round(s.price / s.cpl);
   return {
     id: `c${i + 1}`,
     name: s.name,
@@ -410,7 +417,7 @@ export const BOOKINGS: Booking[] = [
     draft: { body: "", revision: 2, submittedAt: iso(-18) },
     postUrl: "https://linkedin.com/posts/thomas-higadere-meridian",
     publishedAt: iso(-14),
-    metrics: { impressions: 42800, clicks: 5390, leads: 226, pipeline: 18400 },
+    metrics: { impressions: 42800, clicks: 5390, leads: 47, pipeline: 17625 },
     payout: { contract: true, invoice: true, paid: true, paidAt: iso(-13) },
     events: [
       ev(iso(-22), "Invited to campaign", "brand"),
@@ -433,7 +440,7 @@ export const BOOKINGS: Booking[] = [
     draft: { body: "", revision: 1, submittedAt: iso(-9) },
     postUrl: "https://linkedin.com/posts/priya-raghunathan-meridian",
     publishedAt: iso(-5),
-    metrics: { impressions: 9120, clicks: 1386, leads: 84, pipeline: 11200 },
+    metrics: { impressions: 9120, clicks: 1386, leads: 20, pipeline: 7500 },
     payout: { contract: true, invoice: true, paid: true, paidAt: iso(-4) },
     events: [
       ev(iso(-12), "Invited to campaign", "brand"),

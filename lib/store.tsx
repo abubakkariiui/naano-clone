@@ -12,7 +12,15 @@ import { BOOKINGS, BRANDS, CAMPAIGNS, CREATORS, DEMO_CREATOR_ID } from "./data";
 import { fitScore, project } from "./fit";
 import type { AppState, Booking, Campaign, Role } from "./types";
 
-const STORAGE_KEY = "naano.state.v1";
+// Bump this whenever the seed data changes shape or values: a returning
+// visitor holding an older snapshot would otherwise keep stale numbers forever.
+const STORAGE_KEY = "naano.state.v2";
+
+/**
+ * Average deal value attributed to one qualified lead. Keeps a published
+ * post's pipeline figure consistent with the seeded bookings.
+ */
+const PIPELINE_PER_LEAD = 375;
 
 const initial: AppState = {
   role: "brand",
@@ -218,7 +226,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 status: "live",
                 publishedAt: nowIso(),
                 postUrl: `https://linkedin.com/posts/${creator.name.toLowerCase().replace(/[^a-z]+/g, "-")}-naano`,
-                metrics: { impressions, clicks, leads, pipeline: leads * 135 },
+                metrics: { impressions, clicks, leads, pipeline: leads * PIPELINE_PER_LEAD },
                 payout: { ...b.payout, invoice: true },
               },
               "Published on LinkedIn",
