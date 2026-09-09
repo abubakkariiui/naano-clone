@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.next/
+.env
+.env.local
+*.log
+
+# capture hook bookkeeping only -- the logs themselves in .agent-logs/ ARE committed
+.claude/.capture-state/
